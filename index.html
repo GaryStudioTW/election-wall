@@ -135,11 +135,26 @@
 
 <script>
 /* ========== 資料存取 ========== */
-const KEY = 'electionWall.v1';
-let state = { cols: 2, items: [] };
+const KEY = 'electionWall.v2';
+
+/* 預設電視台：沒手動改過網址的台，每次打開都會用這裡的最新網址 */
+const DEFAULTS = [
+  { id: 'd-set',  name: '三立新聞', src: 'https://www.youtube.com/watch?v=yeYC0mbSIOo' },
+  { id: 'd-mnews', name: '鏡新聞',  src: 'https://www.youtube.com/watch?v=5n0y6b0Q25o' },
+  { id: 'd-ftv',  name: '民視新聞', src: 'https://www.youtube.com/watch?v=ylYJSBUgaMA' },
+  { id: 'd-cts',  name: '華視新聞', src: 'https://www.youtube.com/watch?v=wM0g8EoUZ_E' },
+  { id: 'd-ebc',  name: '東森新聞', src: 'https://www.youtube.com/watch?v=V1p33hqPrUk' },
+  { id: 'd-tvbs', name: 'TVBS',    src: 'https://www.youtube.com/watch?v=m_dhMSvUCIc' }
+];
+const DEFAULT_MAP = Object.fromEntries(DEFAULTS.map(d => [d.id, d]));
+
+let state = { cols: 2, items: DEFAULTS.map(d => ({ ...d })) };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY));
-  if (saved && Array.isArray(saved.items)) state = { cols: saved.cols || 2, items: saved.items };
+  if (saved && Array.isArray(saved.items)) {
+    saved.items.forEach(it => { if (DEFAULT_MAP[it.id] && !it.custom) it.src = DEFAULT_MAP[it.id].src; });
+    state = { cols: saved.cols || 2, items: saved.items };
+  }
 } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
@@ -190,7 +205,7 @@ const ERR_TEXT = {
 };
 
 const tiles = new Map(); // id -> { el, player, src }
-let liveId;        // undefined = 還沒選過（預設第一台）；null = 全部靜音
+let liveId = null; // null = 全部靜音（一打開預設）
 let soloId = null;
 
 function buildPlayer(t, item) {
@@ -311,7 +326,6 @@ function render() {
     t.el.querySelector('.name').textContent = item.name;
     if (t.src !== item.src) buildPlayer(t, item);
   });
-  if (liveId === undefined && state.items.length) liveId = state.items[0].id;
   tiles.forEach((t, id) => t.el.classList.toggle('live', id === liveId));
 }
 
@@ -367,7 +381,7 @@ function submit() {
   const p = parseYT(src);
   if (!p) { dlgErr.textContent = '這不像 YouTube 網址，再確認一下'; inUrl.focus(); return; }
   if (p.handle) { dlgErr.textContent = '@ 帳號網址抓不到直播，請改貼直播影片的網址'; inUrl.focus(); return; }
-  if (editing) { editing.name = name; editing.src = src; }
+  if (editing) { if (editing.src !== src) editing.custom = true; editing.name = name; editing.src = src; }
   else state.items.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, src });
   save(); closeAll(); render();
 }
