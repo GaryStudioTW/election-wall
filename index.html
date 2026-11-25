@@ -27,6 +27,7 @@
   /* 透明玻璃：攔截點擊，避免被 YouTube 吃掉 */
   .glass { position: absolute; inset: 0; z-index: 2; cursor: pointer; touch-action: manipulation; }
   .tile.live .glass { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+  body.direct .glass { display: none; }
   .msg { position: absolute; inset: 0; z-index: 1; display: none; align-items: center; justify-content: center;
     text-align: center; padding: 12px; font-size: 12px; line-height: 1.6; color: #999; }
   .tile.err .msg { display: flex; }
@@ -71,8 +72,8 @@
   .switch { width: 40px; height: 24px; border-radius: 12px; background: #444; position: relative; border: 0; cursor: pointer; padding: 0; }
   .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
     background: #ddd; transition: left 0.15s; }
-  body.editing .switch { background: #8a8a8a; }
-  body.editing .switch::after { left: 18px; }
+  body.editing #editSwitch, body.direct #directSwitch { background: #8a8a8a; }
+  body.editing #editSwitch::after, body.direct #directSwitch::after { left: 18px; }
   .close { display: block; width: 100%; background: none; border: 0; color: #888; font-size: 13px; padding: 12px 0 2px; cursor: pointer; }
 
   .dialog { position: fixed; z-index: 31; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -105,6 +106,7 @@
 <div class="backdrop" id="backdrop"></div>
 
 <div class="sheet" id="sheet">
+  <div class="row click" id="muteAll"><span>全部靜音</span><span style="font-size:13px;color:#999">點一下</span></div>
   <div class="row">
     <span>一列幾格</span>
     <div class="seg" id="seg">
@@ -112,7 +114,8 @@
     </div>
   </div>
   <div class="row click" id="sheetAdd"><span>新增電視台</span><span style="font-size:20px;color:#ccc">＋</span></div>
-  <div class="row" style="border:none"><span>編輯模式</span><button class="switch" id="editSwitch" aria-label="編輯模式"></button></div>
+  <div class="row"><span>編輯模式</span><button class="switch" id="editSwitch" aria-label="編輯模式"></button></div>
+  <div class="row" style="border:none"><span>直接操作 YouTube<br><span style="font-size:11px;color:#777">可按略過廣告，點畫面暫時不會換台</span></span><button class="switch" id="directSwitch" aria-label="直接操作 YouTube"></button></div>
   <button class="close" id="sheetClose">關閉</button>
 </div>
 
@@ -187,7 +190,7 @@ const ERR_TEXT = {
 };
 
 const tiles = new Map(); // id -> { el, player, src }
-let liveId = null;
+let liveId;        // undefined = 還沒選過（預設第一台）；null = 全部靜音
 let soloId = null;
 
 function buildPlayer(t, item) {
@@ -308,7 +311,7 @@ function render() {
     t.el.querySelector('.name').textContent = item.name;
     if (t.src !== item.src) buildPlayer(t, item);
   });
-  if (liveId === null && state.items.length) liveId = state.items[0].id;
+  if (liveId === undefined && state.items.length) liveId = state.items[0].id;
   tiles.forEach((t, id) => t.el.classList.toggle('live', id === liveId));
 }
 
@@ -329,6 +332,8 @@ document.getElementById('seg').addEventListener('click', e => {
   state.cols = +b.dataset.n; save(); render();
 });
 document.getElementById('editSwitch').onclick = () => document.body.classList.toggle('editing');
+document.getElementById('directSwitch').onclick = () => document.body.classList.toggle('direct');
+document.getElementById('muteAll').onclick = () => { unmuteOnly(null); closeAll(); };
 document.getElementById('sheetAdd').onclick = () => openDialog(null);
 document.getElementById('emptyAdd').onclick = () => openDialog(null);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
