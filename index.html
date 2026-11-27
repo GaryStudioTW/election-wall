@@ -143,24 +143,32 @@ const COLS_MIN = 1, COLS_MAX = 10;
 
 /* 預設電視台：沒手動改過網址的台，每次打開都會用這裡的最新網址 */
 const DEFAULTS = [
-  { id: 'd-set',  name: '三立新聞', src: 'https://www.youtube.com/watch?v=yeYC0mbSIOo' },
+  { id: 'd-set',  name: '三立新聞', src: 'https://www.youtube.com/live/yeYC0mbSIOo?si=p1N4dMdxi2sfol_X' },
   { id: 'd-mnews', name: '鏡新聞',  src: 'https://www.youtube.com/watch?v=5n0y6b0Q25o' },
   { id: 'd-ftv',  name: '民視新聞', src: 'https://www.youtube.com/watch?v=ylYJSBUgaMA' },
   { id: 'd-cts',  name: '華視新聞', src: 'https://www.youtube.com/watch?v=wM0g8EoUZ_E' },
   { id: 'd-ebc',  name: '東森新聞', src: 'https://www.youtube.com/watch?v=V1p33hqPrUk' },
-  { id: 'd-tvbs', name: 'TVBS',    src: 'https://www.youtube.com/watch?v=m_dhMSvUCIc' }
+  { id: 'd-tvbs', name: 'TVBS',    src: 'https://www.youtube.com/watch?v=m_dhMSvUCIc' },
+  { id: 'd-ctitv', name: '寰宇新聞', src: 'https://www.youtube.com/watch?v=6IquAgfvYmc' },
+  { id: 'd-ctv',  name: '中視新聞', src: 'https://www.youtube.com/watch?v=TCnaIE_SAtM' },
+  { id: 'd-cti',  name: '中天新聞', src: 'https://www.youtube.com/watch?v=vr3XyVCR4T0' }
 ];
 const DEFAULT_MAP = Object.fromEntries(DEFAULTS.map(d => [d.id, d]));
+const FIRST_SIX = ['d-set', 'd-mnews', 'd-ftv', 'd-cts', 'd-ebc', 'd-tvbs'];
 
-let state = { cols: 2, items: DEFAULTS.map(d => ({ ...d })) };
+let state = { cols: 2, items: DEFAULTS.map(d => ({ ...d })), seen: DEFAULTS.map(d => d.id) };
 try {
   const saved = JSON.parse(localStorage.getItem(KEY));
   if (saved && Array.isArray(saved.items)) {
     saved.items.forEach(it => { if (DEFAULT_MAP[it.id] && !it.custom) it.src = DEFAULT_MAP[it.id].src; });
-    state = { cols: saved.cols || 2, items: saved.items };
+    // seen = 曾經出現過的預設台；之後新增的預設台會自動補在最後，被你刪掉的不會再跑回來
+    const seen = new Set(Array.isArray(saved.seen) ? saved.seen : FIRST_SIX);
+    DEFAULTS.forEach(d => { if (!seen.has(d.id)) { saved.items.push({ ...d }); seen.add(d.id); } });
+    state = { cols: saved.cols || 2, items: saved.items, seen: [...seen] };
   }
 } catch (e) {}
 function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+save();
 
 /* ========== 解析 YouTube 網址 ========== */
 function parseYT(input) {
