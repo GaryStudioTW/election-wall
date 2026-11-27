@@ -105,8 +105,8 @@
 <div class="wall" id="wall"></div>
 
 <div class="empty">
-  <div>還沒有電視台，先新增一台吧</div>
-  <button class="btn primary" id="emptyAdd">新增電視台</button>
+  <div>還沒有頻道，先新增一個吧</div>
+  <button class="btn primary" id="emptyAdd">新增頻道</button>
 </div>
 
 <button class="fab" id="fab" aria-label="設定">⋯</button>
@@ -133,8 +133,8 @@
 </div>
 
 <div class="dialog" id="dialog">
-  <h2 id="dlgTitle">新增電視台</h2>
-  <label for="inName">電視台名稱</label>
+  <h2 id="dlgTitle">新增頻道</h2>
+  <label for="inName">頻道名稱</label>
   <input id="inName" placeholder="三立新聞" autocomplete="off">
   <label for="inUrl">YouTube 直播網址</label>
   <input id="inUrl" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" inputmode="url">
@@ -399,7 +399,7 @@ function openDialog(item) {
   editing = item;
   sheet.classList.remove('show');
   backdrop.classList.add('show');
-  document.getElementById('dlgTitle').textContent = item ? '編輯電視台' : '新增電視台';
+  document.getElementById('dlgTitle').textContent = item ? '編輯頻道' : '新增頻道';
   document.getElementById('dlgOk').textContent = item ? '儲存' : '加入';
   inName.value = item ? item.name : '';
   inUrl.value = item ? item.src : '';
@@ -414,7 +414,7 @@ document.getElementById('dlgOk').onclick = submit;
 function submit() {
   const name = inName.value.trim();
   const src = inUrl.value.trim();
-  if (!name) { dlgErr.textContent = '請輸入電視台名稱'; inName.focus(); return; }
+  if (!name) { dlgErr.textContent = '請輸入頻道名稱'; inName.focus(); return; }
   if (!src) { dlgErr.textContent = '請貼上 YouTube 網址'; inUrl.focus(); return; }
   const p = parseYT(src);
   if (!p) { dlgErr.textContent = '這不像 YouTube 網址，再確認一下'; inUrl.focus(); return; }
