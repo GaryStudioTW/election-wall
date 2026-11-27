@@ -110,6 +110,7 @@
 
 <div class="sheet" id="sheet">
   <div class="row click" id="muteAll"><span>全部靜音</span><span style="font-size:13px;color:#999">點一下</span></div>
+  <div class="row click" id="allLive"><span>全部跳到最新直播</span><span style="font-size:13px;color:#999">點一下</span></div>
   <div class="row">
     <span>一列幾格</span>
     <div class="stepper">
@@ -226,6 +227,7 @@ function buildPlayer(t, item) {
   if (old) old.remove();
   if (t.player && t.player.destroy) { try { t.player.destroy(); } catch (e) {} }
   t.player = null;
+  t.jumped = false;
   t.el.classList.remove('err');
   t.src = item.src;
 
@@ -242,6 +244,10 @@ function buildPlayer(t, item) {
     const vars = { autoplay: 1, mute: 1, playsinline: 1, controls: 0, rel: 0, iv_load_policy: 3, disablekb: 1, fs: 0 };
     const opts = { width: '100%', height: '100%', playerVars: vars, events: {
       onReady: e => { e.target.mute(); e.target.playVideo(); if (liveId === item.id) unmuteOnly(item.id); },
+      // 第一次開始播放時，自動跳到直播最前端（避免從 YouTube 記住的舊位置開始播）
+      onStateChange: e => {
+        if (e.data === 1 && !t.jumped) { t.jumped = true; setTimeout(() => goLive(e.target), 600); }
+      },
       onError: e => showErr(t, ERR_TEXT[e.data] || '播放出錯了（代碼 ' + e.data + '）')
     }};
     if (p.channel) { opts.videoId = 'live_stream'; vars.channel = p.channel; }
@@ -249,6 +255,16 @@ function buildPlayer(t, item) {
     t.player = new YT.Player(target, opts);
   };
   apiReady ? make() : pending.push(make);
+}
+
+/* 跳到直播最前端：直播的總長度會一直增加，跳到「總長度」的位置就是現在 */
+function goLive(pl) {
+  try {
+    const data = pl.getVideoData && pl.getVideoData();
+    if (data && data.isLive === false) return; // 確定不是直播就不跳，免得重播影片被跳到結尾
+    const d = pl.getDuration();
+    if (d > 0) { pl.seekTo(d, true); pl.playVideo(); }
+  } catch (e) {}
 }
 
 function showErr(t, text) {
@@ -360,6 +376,7 @@ document.getElementById('colsPlus').onclick = () => { if (state.cols < COLS_MAX)
 document.getElementById('editSwitch').onclick = () => document.body.classList.toggle('editing');
 document.getElementById('directSwitch').onclick = () => document.body.classList.toggle('direct');
 document.getElementById('muteAll').onclick = () => { unmuteOnly(null); closeAll(); };
+document.getElementById('allLive').onclick = () => { tiles.forEach(t => t.player && goLive(t.player)); closeAll(); };
 document.getElementById('sheetAdd').onclick = () => openDialog(null);
 document.getElementById('emptyAdd').onclick = () => openDialog(null);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAll(); });
