@@ -75,8 +75,13 @@
   .switch { width: 40px; height: 24px; border-radius: 12px; background: #444; position: relative; border: 0; cursor: pointer; padding: 0; }
   .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 50%;
     background: #ddd; transition: left 0.15s; }
-  body.editing #editSwitch, body.direct #directSwitch { background: #8a8a8a; }
-  body.editing #editSwitch::after, body.direct #directSwitch::after { left: 18px; }
+  body.direct #directSwitch { background: #8a8a8a; }
+  body.direct #directSwitch::after { left: 18px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 0; border-bottom: 0.5px solid #2e2e2e; }
+  .pair button { height: 40px; border-radius: 8px; border: 0.5px solid #444; background: #262626; color: #ddd;
+    font-size: 14px; cursor: pointer; padding: 0 6px; }
+  .pair button:active { background: #333; }
+  body.editing #editSwitch { background: #eee; color: #111; border-color: #eee; }
   .close { display: block; width: 100%; background: none; border: 0; color: #888; font-size: 13px; padding: 12px 0 2px; cursor: pointer; }
 
   .dialog { position: fixed; z-index: 31; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -109,16 +114,20 @@
 <div class="backdrop" id="backdrop"></div>
 
 <div class="sheet" id="sheet">
-  <div class="row click" id="muteAll"><span>全部靜音</span><span style="font-size:13px;color:#999">點一下</span></div>
-  <div class="row click" id="allLive"><span>全部跳到最新直播</span><span style="font-size:13px;color:#999">點一下</span></div>
+  <div class="pair">
+    <button id="muteAll">靜音</button>
+    <button id="allLive">更新直播進度</button>
+  </div>
   <div class="row">
     <span>一列幾格</span>
     <div class="stepper">
       <button id="colsMinus" aria-label="減少">−</button><span id="colsNum">2</span><button id="colsPlus" aria-label="增加">＋</button>
     </div>
   </div>
-  <div class="row click" id="sheetAdd"><span>新增電視台</span><span style="font-size:20px;color:#ccc">＋</span></div>
-  <div class="row"><span>編輯模式</span><button class="switch" id="editSwitch" aria-label="編輯模式"></button></div>
+  <div class="pair">
+    <button id="sheetAdd">新增頻道</button>
+    <button id="editSwitch">編輯模式</button>
+  </div>
   <div class="row" style="border:none"><span>直接操作 YouTube<br><span style="font-size:11px;color:#777">可按略過廣告，點畫面暫時不會換台</span></span><button class="switch" id="directSwitch" aria-label="直接操作 YouTube"></button></div>
   <button class="close" id="sheetClose">關閉</button>
 </div>
